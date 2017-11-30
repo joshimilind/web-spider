@@ -7,7 +7,7 @@ object ClientActor extends App {
   val _system: ActorSystem = ActorSystem.create("hello-system")
   val actor: ActorRef = _system.actorOf(ServerActor.props)
   val url: String =
-    ("https://alvinalexander.com/source-code/scala/scala-open-url-inputstream-method-httpurlconnection")
+    ("https://www.google.co.in/")
 
   actor ! url
 
