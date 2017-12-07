@@ -1,33 +1,50 @@
 package web.crawler.net
-
-import akka.actor.{Actor, Props}
-import org.jsoup.Jsoup
-import org.jsoup.select.Elements
-import scala.collection.JavaConversions._
-
-class ServerActor extends Actor {
-  def crawl(url: String): Unit = {
-    println("\n" + url)
-    try {
-      val doc = Jsoup.connect(url).get()
-      val title = doc.title()
-      val links: Elements = doc.select("a[href]")
-      for (link <- links) {
-        println(s"\ntitle : " + link.text)
-        println("link  : " + link.attr("abs:href"))
-      }
-    } catch {
-      case _: Throwable =>
-        println(
-          "\n Something went wrong, may be web site has disabled robot.txt!")
-    }
-  }
-  def receive: Receive = {
-    case url => crawl(s"url:$url")
-    case _   => unhandled()
-  }
-}
-
+import akka.actor._
+import akka.actor.{Actor, ActorRef, Props}
+import web.crawler.net.ServerActor.{StartCrawling, CrawledUrls}
+import web.crawler.net.LinkChecker.Result
+import scala.collection.mutable
 object ServerActor {
-  def props = Props(classOf[ServerActor])
+  case class StartCrawling(url: String, depth: Int) {}
+  case class CrawledUrls(url: String, links: Set[String]) {}
 }
+class ServerActor extends Actor {
+
+  val clients: mutable.Map[String, Set[ActorRef]] =
+    collection.mutable.Map[String, Set[ActorRef]]()
+  val linkcontroller: mutable.Map[String, ActorRef] =
+    mutable.Map[String, ActorRef]()
+
+  def receive = {
+
+    case StartCrawling(url, depth) =>
+      val controller = linkcontroller get url
+      if (controller.isEmpty) {
+        linkcontroller += (url -> context.actorOf(
+          Props[LinkChecker](new LinkChecker(url, depth))))
+        clients += (url -> Set.empty[ActorRef])
+      }
+      clients(url) += sender
+
+    case Result(url, links) =>
+      context.stop(linkcontroller(url))
+
+      clients(url) foreach (_ ! CrawledUrls(url, links))
+      clients -= url
+
+      linkcontroller -= url
+  }
+}
+
+/*
+  val _system: ActorSystem = ActorSystem.create("hello-system")
+
+  val serveractor: ActorRef = _system.actorOf(ServerActor.props)
+  val url: String = "https://www.google.co.in/"
+
+  serveractor ! url
+
+  Thread.sleep(2000)
+
+  _system.terminate
+}*/
