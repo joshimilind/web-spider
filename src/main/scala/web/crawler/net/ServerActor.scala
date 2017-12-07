@@ -24,6 +24,7 @@ class ServerActor extends Actor {
           Props[LinkChecker](new LinkChecker(url, depth))))
         clients += (url -> Set.empty[ActorRef])
       }
+
       clients(url) += sender
 
     case Result(url, links) =>
@@ -35,16 +36,3 @@ class ServerActor extends Actor {
       linkcontroller -= url
   }
 }
-
-/*
-  val _system: ActorSystem = ActorSystem.create("hello-system")
-
-  val serveractor: ActorRef = _system.actorOf(ServerActor.props)
-  val url: String = "https://www.google.co.in/"
-
-  serveractor ! url
-
-  Thread.sleep(2000)
-
-  _system.terminate
-}*/

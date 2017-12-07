@@ -12,17 +12,23 @@ object LinkChecker {
 }
 
 class LinkChecker(root: String, originalDepth: Int) extends Actor {
+
   var visitedurls = Set.empty[String]
   var children = Set.empty[ActorRef]
 
   self ! CheckUrl(root, originalDepth)
-  context.setReceiveTimeout(10 seconds)
+  context.setReceiveTimeout(20 seconds)
 
   def receive = {
+
     case CheckUrl(url, depth) =>
+      /**
+        * checking if url to be crawled is not already visited
+        */
       if (!visitedurls(url) && depth >= 0)
         children += context.actorOf(
           Props[HttpRequest](new HttpRequest(url, depth - 1)))
+
       visitedurls += url
 
     case Done =>
