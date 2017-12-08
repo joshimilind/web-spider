@@ -1,7 +1,7 @@
 package web.crawler.net
 
-import akka.actor.{Actor, ActorRef, Props, ReceiveTimeout}
-import web.crawler.net.HttpRequest.Done
+import akka.actor._
+import web.crawler.net.GetterActor.Done
 import web.crawler.net.LinkChecker.{CheckUrl, Result}
 
 import scala.concurrent.duration._
@@ -27,7 +27,7 @@ class LinkChecker(root: String, originalDepth: Int) extends Actor {
         */
       if (!visitedurls(url) && depth >= 0)
         children += context.actorOf(
-          Props[HttpRequest](new HttpRequest(url, depth - 1)))
+          Props[GetterActor](new GetterActor(url, depth - 1)))
 
       visitedurls += url
 
@@ -35,6 +35,6 @@ class LinkChecker(root: String, originalDepth: Int) extends Actor {
       children -= sender
       if (children.isEmpty) context.parent ! Result(root, visitedurls)
 
-    case ReceiveTimeout => children foreach (_ ! HttpRequest.Abort)
+    case ReceiveTimeout => children foreach (_ ! GetterActor.Abort)
   }
 }

@@ -1,5 +1,6 @@
 package web.crawler.net
-import akka.actor.{Actor, ActorRef, ActorSystem, Props}
+import akka.actor._
+//import akka.actor.{Actor, ActorRef, ActorSystem, Props}
 import web.crawler.net.ServerActor.{CrawledUrls, StartCrawling}
 class Client(StartPoint: ActorRef, url: String, depth: Int) extends Actor {
 
@@ -27,6 +28,5 @@ object Client extends App {
   val _system = ActorSystem("webSpider")
   val StartPoint = _system.actorOf(Props[ServerActor], "webSpider")
   val client = _system.actorOf(
-    Props[Client](new Client(StartPoint, "http://www.synerzip.com/", 1)))
-
+    Props[Client](new Client(StartPoint, "http://www.synerzip.com/", 2)))
 }

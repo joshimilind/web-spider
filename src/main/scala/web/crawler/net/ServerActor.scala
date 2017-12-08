@@ -1,6 +1,6 @@
 package web.crawler.net
+
 import akka.actor._
-import akka.actor.{Actor, ActorRef, Props}
 import web.crawler.net.ServerActor.{StartCrawling, CrawledUrls}
 import web.crawler.net.LinkChecker.Result
 import scala.collection.mutable
